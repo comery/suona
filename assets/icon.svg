@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>suona app icon</title>
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#FFEDCD"/>
+      <stop offset="0.55" stop-color="#FBDCA6"/>
+      <stop offset="1"   stop-color="#EFB761"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.34" r="0.62">
+      <stop offset="0"   stop-color="#FFFFFF" stop-opacity="0.75"/>
+      <stop offset="1"   stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#bg2)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#glow)"/>
+
+  <g transform="translate(516,516) scale(1.5) translate(-256,-259)">
+    <defs>
+      <linearGradient id="iwood" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"    stop-color="#7E3316"/>
+        <stop offset="0.30" stop-color="#B85631"/>
+        <stop offset="0.52" stop-color="#D07048"/>
+        <stop offset="0.75" stop-color="#A94A26"/>
+        <stop offset="1"    stop-color="#6E2B11"/>
+      </linearGradient>
+      <linearGradient id="ibrass" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"    stop-color="#9C6A10"/>
+        <stop offset="0.28" stop-color="#E8B44A"/>
+        <stop offset="0.50" stop-color="#FBE29A"/>
+        <stop offset="0.74" stop-color="#D89B2C"/>
+        <stop offset="1"    stop-color="#8E5F0D"/>
+      </linearGradient>
+      <linearGradient id="ibell" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"    stop-color="#8E5F0D"/>
+        <stop offset="0.26" stop-color="#E0A63A"/>
+        <stop offset="0.48" stop-color="#FCE7A6"/>
+        <stop offset="0.72" stop-color="#D2942A"/>
+        <stop offset="1"    stop-color="#7E5209"/>
+      </linearGradient>
+      <linearGradient id="ireed" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0"    stop-color="#3A2716"/>
+        <stop offset="0.45" stop-color="#7A5836"/>
+        <stop offset="1"    stop-color="#33220F"/>
+      </linearGradient>
+      <radialGradient id="imouth" cx="0.5" cy="0.3" r="0.8">
+        <stop offset="0"   stop-color="#5E3A06"/>
+        <stop offset="0.6" stop-color="#8A5A12"/>
+        <stop offset="1"   stop-color="#B8791C"/>
+      </radialGradient>
+    </defs>
+
+    <!-- 哨片 -->
+    <path d="M250,44 L262,44 L266,90 L246,90 Z" fill="url(#ireed)"/>
+    <!-- 芯子 -->
+    <rect x="246" y="86" width="20" height="58" rx="3" fill="url(#ibrass)"/>
+    <!-- 气盘 -->
+    <rect x="227" y="136" width="58" height="18" rx="9" fill="url(#ibrass)"/>
+    <rect x="227" y="136" width="58" height="6"  rx="3" fill="#FCE7A6" opacity="0.55"/>
+    <!-- 杆 -->
+    <path d="M230,148 L282,148 L298,372 L214,372 Z" fill="url(#iwood)"/>
+    <g fill="#4A1D08" opacity="0.82">
+      <ellipse cx="256" cy="196" rx="6.5" ry="6.5"/>
+      <ellipse cx="256" cy="224" rx="7.0" ry="7.0"/>
+      <ellipse cx="256" cy="252" rx="7.5" ry="7.5"/>
+      <ellipse cx="256" cy="280" rx="8.0" ry="8.0"/>
+      <ellipse cx="256" cy="308" rx="8.5" ry="8.5"/>
+      <ellipse cx="256" cy="336" rx="9.0" ry="9.0"/>
+    </g>
+    <path d="M230,148 L238,148 L226,372 L214,372 Z" fill="#E0906A" opacity="0.22"/>
+    <!-- 碗 -->
+    <path d="M214,366 C214,406 158,412 156,452 L356,452 C354,412 298,406 298,366 Z"
+          fill="url(#ibell)"/>
+    <path d="M232,368 C232,406 186,414 180,448 L196,448 C202,414 244,404 244,368 Z"
+          fill="#FFF3CE" opacity="0.30"/>
+    <ellipse cx="256" cy="452" rx="100" ry="26" fill="url(#imouth)"/>
+    <ellipse cx="256" cy="452" rx="100" ry="26" fill="none" stroke="#6B4408" stroke-width="3"/>
+    <ellipse cx="256" cy="449" rx="84" ry="19" fill="#4E2E04" opacity="0.55"/>
+  </g>
+</svg>

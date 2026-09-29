@@ -1,0 +1,1017 @@
+/* ─────────────────────────────────────────────────────────────
+   suona — pet window styling.
+
+   The window is transparent and undecorated, so everything here is
+   drawn on top of the user's desktop.  Keep backgrounds transparent
+   and shadows soft.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  --ink: #2b2118;
+  --ink-soft: #6b5b4a;
+  --paper: #fffbf3;
+  --edge: rgba(122, 82, 32, 0.16);
+  --shadow: 0 10px 28px rgba(70, 40, 10, 0.22);
+
+  --hermes: #1f8f7e;
+  --codex: #6c5ce7;
+  --claude: #d9723f;
+
+  --error: #e5484d;
+  --warning: #e8912a;
+  --success: #2f9e68;
+  --info: #8b8f98;
+
+  --accent: var(--info);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro SC", "PingFang SC",
+    "Helvetica Neue", sans-serif;
+  color: var(--ink);
+  cursor: default;
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  /* Size levels.  These mirror src-tauri/src/pet.rs — the Rust side sizes the
+     window, this side sizes what is drawn inside it. */
+  --scale: 1;
+  --pet-w: calc(158px * var(--scale));
+  --pet-h: calc(214px * var(--scale));
+  /* Distance from the pet's centre to the lowest point of the bell rim.  The
+     pet pivots about its centre, so this is the radius the bell sweeps. */
+  --reach: calc(95.6px * var(--scale));
+  /* How much of the bell stays on screen when docked to an edge. */
+  --strip: calc(40px * var(--scale));
+  /* Bell facing, in degrees, driven by the Rust side. */
+  --angle: 0deg;
+}
+
+#stage[data-size="medium"] {
+  --scale: 0.785;
+}
+
+#stage[data-size="small"] {
+  --scale: 0.635;
+}
+
+/* ── the pet ─────────────────────────────────────────────────── */
+
+.pet {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  width: var(--pet-w);
+  height: var(--pet-h);
+  margin-left: calc(var(--pet-w) / -2);
+  /* Pivot on the pet's own centre: the bell sweeps at --reach from here. */
+  transform-origin: 50% 50%;
+  transform: rotate(var(--angle));
+  transition: transform 0.09s linear, filter 0.25s ease;
+  cursor: grab;
+}
+
+/* ── docked: the pet hangs off its edge ──────────────────────── */
+
+/* Anchored to the docked edge rather than the window's centre, so the same
+   rule serves both the resting strip and the much larger window the list
+   needs.  `--strip` is how much of the pet is inside the window; it grows when
+   the list opens, which is what makes the pet poke out further. */
+
+#stage[data-dock="left"] .pet,
+#stage[data-dock="right"] .pet,
+#stage[data-dock="top"] .pet,
+#stage[data-dock="bottom"] .pet {
+  margin: 0;
+}
+
+#stage[data-dock="left"] .pet,
+#stage[data-dock="right"] .pet {
+  left: 0;
+  right: auto;
+  top: 50%;
+  bottom: auto;
+  margin-top: calc(var(--pet-h) / -2);
+}
+
+#stage[data-dock="top"] .pet,
+#stage[data-dock="bottom"] .pet {
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-left: calc(var(--pet-w) / -2);
+}
+
+#stage[data-dock="left"] .pet {
+  transform: translate(calc(var(--strip) - var(--reach) - var(--pet-w) / 2), 0)
+    rotate(-90deg);
+}
+
+#stage[data-dock="right"] .pet {
+  left: auto;
+  right: 0;
+  transform: translate(calc(var(--pet-w) / 2 + var(--reach) - var(--strip)), 0)
+    rotate(90deg);
+}
+
+#stage[data-dock="top"] .pet {
+  top: 0;
+  transform: translate(0, calc(var(--strip) - var(--reach) - var(--pet-h) / 2))
+    rotate(0deg);
+}
+
+#stage[data-dock="bottom"] .pet {
+  top: auto;
+  bottom: 0;
+  transform: translate(0, calc(var(--pet-h) / 2 + var(--reach) - var(--strip)))
+    rotate(180deg);
+}
+
+/* Docked, the bubble and the status strip have nowhere to go. */
+#stage:not([data-dock="none"]) .bubble,
+#stage:not([data-dock="none"]) .hud {
+  display: none;
+}
+
+/* The list, though, has somewhere: beside the pet.  Hidden while the pet is
+   merely resting against its edge. */
+#stage:not([data-dock="none"]):not([data-peek="open"]) .panel {
+  display: none;
+}
+
+/* Laid out in the space the pet is not using. */
+#stage[data-peek="open"] .panel {
+  top: 9px;
+  bottom: 9px;
+}
+
+#stage[data-peek="open"][data-dock="left"] .panel {
+  left: calc(var(--strip) + 9px);
+  right: 9px;
+}
+
+#stage[data-peek="open"][data-dock="right"] .panel {
+  left: 9px;
+  right: calc(var(--strip) + 9px);
+}
+
+#stage[data-peek="open"][data-dock="top"] .panel {
+  left: 9px;
+  right: 9px;
+  top: calc(var(--strip) + 9px);
+}
+
+#stage[data-peek="open"][data-dock="bottom"] .panel {
+  left: 9px;
+  right: 9px;
+  bottom: calc(var(--strip) + 9px);
+}
+
+/* The aura is sized for the free state; docked it would spill everywhere. */
+#stage:not([data-dock="none"]) .aura {
+  left: 50%;
+  top: 50%;
+  bottom: auto;
+  width: calc(170px * var(--scale));
+  height: calc(170px * var(--scale));
+  /* The breathe keyframes own translateX(-50%), so centre vertically here. */
+  margin-top: calc(-85px * var(--scale));
+}
+
+/* A docked pet has no bubble, so it signals news by glowing instead. */
+.pet.alert .suona {
+  filter: drop-shadow(0 0 10px rgba(255, 150, 40, 0.95))
+    drop-shadow(0 0 22px rgba(255, 120, 20, 0.6));
+}
+
+.pet:active {
+  cursor: grabbing;
+}
+
+.pet .suona {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  animation: float 4.2s ease-in-out infinite;
+  transform-origin: 50% 92%;
+  filter: drop-shadow(0 6px 10px rgba(60, 30, 5, 0.28));
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(-1.2deg);
+  }
+}
+
+/* warm halo behind the bell, breathes while idle */
+.aura {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: calc(210px * var(--scale));
+  height: calc(140px * var(--scale));
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 196, 92, 0.4) 0%,
+    rgba(255, 180, 60, 0.12) 45%,
+    rgba(255, 180, 60, 0) 72%
+  );
+  z-index: 1;
+  animation: breathe 4.2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+/* ── speaking state ──────────────────────────────────────────── */
+
+.pet.speaking .suona {
+  animation: play 0.62s ease-in-out infinite;
+}
+
+@keyframes play {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(-3.2deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(2.6deg);
+  }
+}
+
+.pet.speaking .aura {
+  animation: pulse 0.62s ease-in-out infinite;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 186, 70, 0.72) 0%,
+    rgba(255, 160, 40, 0.28) 45%,
+    rgba(255, 160, 40, 0) 72%
+  );
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.16);
+  }
+}
+
+/* the mouth of the bell lights up */
+.bell-glow {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.pet.speaking .bell-glow {
+  opacity: 1;
+  animation: bellflash 0.62s ease-in-out infinite;
+}
+
+@keyframes bellflash {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── musical notes puffing out of the bell ───────────────────── */
+
+.notes {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 0;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.notes span {
+  position: absolute;
+  font-size: 15px;
+  line-height: 1;
+  color: #b8791c;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.pet.speaking .notes span {
+  animation: rise 1.35s ease-out infinite;
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(0deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 18px), -104px) scale(1.15) rotate(var(--rot, 20deg));
+  }
+}
+
+/* ── speech bubble ───────────────────────────────────────────── */
+
+.bubble {
+  position: absolute;
+  left: 50%;
+  bottom: 252px;
+  width: 336px;
+  max-height: 164px;
+  padding: 11px 14px 12px;
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(8px) scale(0.94);
+  transform-origin: 50% 100%;
+  transition: opacity 0.26s ease, transform 0.26s cubic-bezier(0.34, 1.46, 0.64, 1);
+  overflow: hidden;
+}
+
+.bubble.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* left accent bar keyed to severity */
+.bubble::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--accent);
+  opacity: 0.9;
+}
+
+.bubble-tail {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  background: var(--paper);
+  border-right: 1px solid var(--edge);
+  border-bottom: 1px solid var(--edge);
+  transform: rotate(45deg);
+  border-bottom-right-radius: 3px;
+}
+
+.bubble-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+
+.chip {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2.5px 8px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--accent);
+  white-space: nowrap;
+}
+
+.chip.agent-hermes {
+  background: var(--hermes);
+}
+.chip.agent-codex {
+  background: var(--codex);
+}
+.chip.agent-claude {
+  background: var(--claude);
+}
+.chip.agent-suona {
+  background: #b8791c;
+}
+
+.time {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
+.bubble-title {
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.36;
+  color: var(--ink);
+  /* never let a long job name push the bubble past its cap */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bubble-detail {
+  margin-top: 4px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bubble-detail:empty {
+  display: none;
+}
+
+/* ── expanded event list ─────────────────────────────────────── */
+
+.panel {
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  /* No window chrome sits above any more, so the list can use the full top. */
+  top: 9px;
+  bottom: 250px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  z-index: 11;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.97);
+  transform-origin: 50% 100%;
+  transition: opacity 0.24s ease, transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.panel.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* the bubble would only compete with the list */
+.panel.visible ~ .bubble {
+  opacity: 0;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 13px 9px;
+  border-bottom: 1px solid var(--edge);
+  flex: none;
+}
+
+.panel-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.panel-count {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  /* Pushed right so the count sits beside the close button, not the title. */
+  margin-left: auto;
+  margin-right: 7px;
+  white-space: nowrap;
+}
+
+/* ── time range: today by default ─────────────────────────────── */
+
+.range-picker {
+  display: flex;
+  gap: 2px;
+  margin-left: 8px;
+  background: rgba(122, 82, 32, 0.09);
+  border-radius: 7px;
+  padding: 2px;
+  flex: none;
+}
+
+.range-picker button {
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.range-picker button:hover {
+  background: rgba(122, 82, 32, 0.14);
+}
+
+.range-picker button.active {
+  background: #b8791c;
+  color: #fff;
+}
+
+.panel-close {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(43, 33, 24, 0.08);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.panel-close:hover {
+  background: rgba(43, 33, 24, 0.18);
+}
+
+.panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px;
+  border-bottom: 1px solid var(--edge);
+  flex: none;
+}
+
+.panel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.panel-toggle input {
+  accent-color: #b8791c;
+  cursor: pointer;
+  margin: 0;
+}
+
+.panel-toggle-note {
+  margin-left: auto;
+  font-size: 10px;
+  opacity: 0.7;
+  color: var(--ink-soft);
+  /* Footer holds buttons plus this message; truncate rather than reflow. */
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.size-picker {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  background: rgba(122, 82, 32, 0.09);
+  border-radius: 7px;
+  padding: 2px;
+}
+
+.panel-toggle ~ .size-picker {
+  margin-left: 0;
+}
+
+.size-picker button {
+  width: 20px;
+  height: 18px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.size-picker button:hover {
+  background: rgba(122, 82, 32, 0.14);
+}
+
+.size-picker button.active {
+  background: #b8791c;
+  color: #fff;
+}
+
+.panel-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 7px 0 9px;
+}
+
+.panel-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.panel-list::-webkit-scrollbar-thumb {
+  background: rgba(43, 33, 24, 0.16);
+  border-radius: 4px;
+}
+
+.panel-empty {
+  padding: 22px 14px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 13px;
+  border-left: 3px solid transparent;
+}
+
+.row + .row {
+  border-top: 1px solid rgba(122, 82, 32, 0.07);
+}
+
+.row.sev-error {
+  border-left-color: var(--error);
+}
+.row.sev-warning {
+  border-left-color: var(--warning);
+}
+.row.sev-success {
+  border-left-color: var(--success);
+}
+.row.sev-info {
+  border-left-color: rgba(139, 143, 152, 0.45);
+}
+
+.row-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex: none;
+  background: var(--info);
+}
+
+.row.sev-error .row-dot {
+  background: var(--error);
+}
+.row.sev-warning .row-dot {
+  background: var(--warning);
+}
+.row.sev-success .row-dot {
+  background: var(--success);
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.36;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.row-detail {
+  margin-top: 2px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.row-detail:empty {
+  display: none;
+}
+
+.row-side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  padding-top: 1px;
+}
+
+.row-agent {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 999px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.row-agent.agent-hermes {
+  background: var(--hermes);
+}
+.row-agent.agent-codex {
+  background: var(--codex);
+}
+.row-agent.agent-claude {
+  background: var(--claude);
+}
+
+.row-time {
+  font-size: 9.5px;
+  color: var(--ink-soft);
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+/* ── configuration view ───────────────────────────────────────── */
+
+/* One panel, two pages: the list and the settings screen. */
+.panel[data-view="list"] .config-view {
+  display: none;
+}
+
+.panel[data-view="config"] .panel-controls,
+.panel[data-view="config"] .panel-list,
+.panel[data-view="config"] .range-picker,
+.panel[data-view="config"] .panel-count {
+  display: none;
+}
+
+.config-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.config-intro {
+  padding: 9px 13px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--edge);
+  flex: none;
+}
+
+.config-list {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 0 8px;
+}
+
+.config-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.config-list::-webkit-scrollbar-thumb {
+  background: rgba(43, 33, 24, 0.16);
+  border-radius: 4px;
+}
+
+.cfg-row {
+  padding: 8px 13px;
+}
+
+.cfg-row + .cfg-row {
+  border-top: 1px solid rgba(122, 82, 32, 0.07);
+}
+
+.cfg-row.off .cfg-name,
+.cfg-row.off .cfg-path {
+  opacity: 0.5;
+}
+
+.cfg-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+
+.cfg-toggle {
+  display: flex;
+  cursor: pointer;
+}
+
+.cfg-toggle input {
+  accent-color: #b8791c;
+  cursor: pointer;
+  margin: 0;
+}
+
+.cfg-name {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.cfg-badge {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.cfg-badge.detected {
+  background: rgba(47, 158, 104, 0.14);
+  color: #1f7a4d;
+}
+
+.cfg-badge.missing {
+  background: rgba(229, 72, 77, 0.13);
+  color: #b3312f;
+}
+
+.cfg-badge.incomplete {
+  background: rgba(232, 145, 42, 0.16);
+  color: #9a6212;
+}
+
+.cfg-badge.disabled {
+  background: rgba(139, 143, 152, 0.16);
+  color: #6b6f78;
+}
+
+.cfg-path {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  color: var(--ink);
+  padding: 4px 7px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.75);
+  outline: none;
+}
+
+.cfg-path:focus {
+  border-color: #b8791c;
+  background: #fff;
+}
+
+.cfg-path.bad {
+  border-color: var(--error);
+  background: rgba(229, 72, 77, 0.06);
+}
+
+.cfg-detail {
+  margin-top: 4px;
+  font-size: 9.5px;
+  color: var(--ink-soft);
+  opacity: 0.85;
+  overflow-wrap: anywhere;
+}
+
+.cfg-reset {
+  margin-top: 5px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 9.5px;
+  color: #b8791c;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.config-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  border-top: 1px solid var(--edge);
+  flex: none;
+}
+
+.config-back {
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  background: rgba(122, 82, 32, 0.07);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.config-back:hover {
+  background: rgba(122, 82, 32, 0.14);
+}
+
+/* ── hover status strip ──────────────────────────────────────── */
+
+.hud {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%) translateY(4px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(43, 33, 24, 0.82);
+  backdrop-filter: blur(8px);
+  color: #f6efe4;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 12;
+}
+
+.hud.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hud .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--info);
+}
+
+.hud .dot.ok {
+  background: var(--success);
+}
+.hud .dot.warn {
+  background: var(--warning);
+}
+.hud .dot.bad {
+  background: var(--error);
+}
+
+.hud .sep {
+  opacity: 0.3;
+}

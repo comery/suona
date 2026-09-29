@@ -1,0 +1,21 @@
+{
+  "name": "suona",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A desktop pet that reports your local coding agents",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "typescript": "^5.6",
+    "vite": "^8.3.1"
+  }
+}

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>suona</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- data-dock / data-size are kept in sync by the Rust side; the defaults
+         here just avoid a flash of docked styling before the first sync. -->
+    <div id="stage" data-dock="none" data-size="large">
+      <!-- ── full event list, revealed by clicking the pet ─────────── -->
+      <div id="panel" class="panel" data-view="list">
+        <div class="panel-head">
+          <span class="panel-title" id="panel-title">运行汇报</span>
+          <!-- Defaults to today; "全部" is opt-in. -->
+          <div class="range-picker" id="range-picker" title="时间范围">
+            <button type="button" data-range="today" class="active">今天</button>
+            <button type="button" data-range="all">全部</button>
+          </div>
+          <span id="panel-count" class="panel-count"></span>
+          <button id="panel-close" class="panel-close" title="收起">×</button>
+        </div>
+
+        <div class="panel-controls">
+          <label class="panel-toggle" title="登录后自动启动 suona">
+            <input type="checkbox" id="autostart" />
+            <span>自启</span>
+          </label>
+          <label class="panel-toggle" title="汇报时播放提示音">
+            <input type="checkbox" id="sound" />
+            <span>音效</span>
+          </label>
+          <div class="size-picker" id="size-picker" title="唢呐大小">
+            <button type="button" data-size="small" title="小">S</button>
+            <button type="button" data-size="medium" title="中">M</button>
+            <button type="button" data-size="large" title="大">L</button>
+          </div>
+          <span id="controls-note" class="panel-toggle-note"></span>
+        </div>
+
+        <div id="panel-list" class="panel-list"></div>
+
+        <!-- ── configuration view, reached from the right-click menu ── -->
+        <div id="config-view" class="config-view">
+          <div class="config-intro">
+            勾选要监控的 agent。取消勾选只是让 suona 停止汇报它，
+            <strong>不会动它的任何数据文件</strong>。
+          </div>
+          <div id="config-list" class="config-list"></div>
+          <div class="config-foot">
+            <button type="button" id="config-back" class="config-back">返回汇报</button>
+            <button type="button" id="config-rescan" class="config-back" title="重新扫描本机，看看有没有新装的 agent">
+              重新检测
+            </button>
+            <span id="config-note" class="panel-toggle-note"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── what the pet is saying ───────────────────────────────── -->
+      <div id="bubble" class="bubble" aria-live="polite">
+        <div class="bubble-head">
+          <span id="bubble-agent" class="chip">suona</span>
+          <span id="bubble-time" class="time"></span>
+        </div>
+        <div id="bubble-title" class="bubble-title"></div>
+        <div id="bubble-detail" class="bubble-detail"></div>
+        <div class="bubble-tail"></div>
+      </div>
+
+      <!-- ── the pet ────────────────────────────────────────────────
+           The drag attribute must be "deep": a bare value only counts when
+           the click lands on this element itself, and the suona is drawn with
+           <path>/<ellipse> elements, which Tauri's hit test skips entirely
+           because they are not HTMLElements.  Without "deep", only the thin
+           transparent margin around the artwork is grabbable. -->
+      <div id="pet" class="pet" data-tauri-drag-region="deep" title="拖拽移动 · 点击查看">
+        <div class="aura"></div>
+
+        <svg class="suona" viewBox="120 18 272 486" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="p-wood" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#7E3316" />
+              <stop offset="0.30" stop-color="#B85631" />
+              <stop offset="0.52" stop-color="#D07048" />
+              <stop offset="0.75" stop-color="#A94A26" />
+              <stop offset="1" stop-color="#6E2B11" />
+            </linearGradient>
+            <linearGradient id="p-brass" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#9C6A10" />
+              <stop offset="0.28" stop-color="#E8B44A" />
+              <stop offset="0.50" stop-color="#FBE29A" />
+              <stop offset="0.74" stop-color="#D89B2C" />
+              <stop offset="1" stop-color="#8E5F0D" />
+            </linearGradient>
+            <linearGradient id="p-bell" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#8E5F0D" />
+              <stop offset="0.26" stop-color="#E0A63A" />
+              <stop offset="0.48" stop-color="#FCE7A6" />
+              <stop offset="0.72" stop-color="#D2942A" />
+              <stop offset="1" stop-color="#7E5209" />
+            </linearGradient>
+            <linearGradient id="p-reed" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#3A2716" />
+              <stop offset="0.45" stop-color="#7A5836" />
+              <stop offset="1" stop-color="#33220F" />
+            </linearGradient>
+            <radialGradient id="p-mouth" cx="0.5" cy="0.3" r="0.8">
+              <stop offset="0" stop-color="#5E3A06" />
+              <stop offset="0.6" stop-color="#8A5A12" />
+              <stop offset="1" stop-color="#B8791C" />
+            </radialGradient>
+            <radialGradient id="p-glow" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0" stop-color="#FFD98A" stop-opacity="0.95" />
+              <stop offset="0.55" stop-color="#FFC24D" stop-opacity="0.35" />
+              <stop offset="1" stop-color="#FFB020" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+
+          <!-- 哨片 -->
+          <path class="suona-reed" d="M250,44 L262,44 L266,90 L246,90 Z" fill="url(#p-reed)" />
+          <!-- 芯子 -->
+          <rect x="246" y="86" width="20" height="58" rx="3" fill="url(#p-brass)" />
+          <!-- 气盘 -->
+          <rect x="227" y="136" width="58" height="18" rx="9" fill="url(#p-brass)" />
+          <rect x="227" y="136" width="58" height="6" rx="3" fill="#FCE7A6" opacity="0.55" />
+          <!-- 杆 -->
+          <path class="suona-body" d="M230,148 L282,148 L298,372 L214,372 Z" fill="url(#p-wood)" />
+          <g class="suona-holes" fill="#4A1D08" opacity="0.82">
+            <ellipse cx="256" cy="196" rx="6.5" ry="6.5" />
+            <ellipse cx="256" cy="224" rx="7" ry="7" />
+            <ellipse cx="256" cy="252" rx="7.5" ry="7.5" />
+            <ellipse cx="256" cy="280" rx="8" ry="8" />
+            <ellipse cx="256" cy="308" rx="8.5" ry="8.5" />
+            <ellipse cx="256" cy="336" rx="9" ry="9" />
+          </g>
+          <path d="M230,148 L238,148 L226,372 L214,372 Z" fill="#E0906A" opacity="0.22" />
+
+          <!-- 碗：喇叭口本身，说话时会发光 -->
+          <g class="suona-bell">
+            <ellipse class="bell-glow" cx="256" cy="452" rx="150" ry="90" fill="url(#p-glow)" />
+            <path
+              d="M214,366 C214,406 158,412 156,452 L356,452 C354,412 298,406 298,366 Z"
+              fill="url(#p-bell)"
+            />
+            <path
+              d="M232,368 C232,406 186,414 180,448 L196,448 C202,414 244,404 244,368 Z"
+              fill="#FFF3CE"
+              opacity="0.30"
+            />
+            <ellipse cx="256" cy="452" rx="100" ry="26" fill="url(#p-mouth)" />
+            <ellipse cx="256" cy="452" rx="100" ry="26" fill="none" stroke="#6B4408" stroke-width="3" />
+            <ellipse cx="256" cy="449" rx="84" ry="19" fill="#4E2E04" opacity="0.55" />
+          </g>
+        </svg>
+
+        <div id="notes" class="notes" aria-hidden="true"></div>
+      </div>
+
+      <!-- ── one-line status, revealed on hover ───────────────────── -->
+      <div id="hud" class="hud"></div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
